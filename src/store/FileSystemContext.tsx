@@ -35,6 +35,7 @@ interface FileSystemContextType {
   getBreadcrumbPath: (id: string) => Promise<FileSystemItem[]>;
   goBack: () => void;
   goToFolder: (id: string) => void;
+  fetchItemsByParentId: (id: string) => void;
 }
 
 // Create Context
@@ -172,6 +173,7 @@ export const FileSystemProvider = ({
         getBreadcrumbPath,
         goToFolder,
         goBack,
+        fetchItemsByParentId,
       }}
     >
       {children}
