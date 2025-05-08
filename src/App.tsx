@@ -1,14 +1,16 @@
 import "./App.css";
 import FileSystemLayout from "./components/layout/FileSystemLayout";
-import { FolderItemCard } from "./components/fragments/FolderCard";
+import FolderCard from "./components/fragments/FolderCard";
 import { useFileSystemContext } from "./store/FileSystemContext";
 import { BreadcrumbFormat } from "./components/layout/BreadcrumbsFormat";
 import NewFolderDialog from "./components/fragments/NewFolderDialog";
 import { Button } from "./components/ui/button";
+import NewFileDialog from "./components/fragments/NewFileDialog";
+import { FileSystemItem } from "./types";
+import FileCard from "./components/fragments/FileCard";
 
 function App() {
-  const { items, goToFolder, goBack, setCurrentFolderId, currentFolderId } =
-    useFileSystemContext();
+  const { items, goBack, currentFolderId } = useFileSystemContext();
 
   return (
     <FileSystemLayout>
@@ -16,6 +18,7 @@ function App() {
         <BreadcrumbFormat />
         <div className="flex gap-5">
           <NewFolderDialog />
+          <NewFileDialog />
           {currentFolderId !== "root" && (
             <Button variant={"outline"} onClick={goBack}>
               Go back
@@ -23,23 +26,19 @@ function App() {
           )}{" "}
         </div>
       </div>
-      <div className="w-full h-fit  flex flex-wrap justify-between  gap-5 py-4">
+      <div className="w-full h-fit  flex  justify-center flex-wrap  gap-8 py-4">
         {items
           .filter((f) => f.parentId === currentFolderId)
-          .map((folder) => (
-            <FolderItemCard
-              key={folder.id}
-              id={folder.id}
-              name={folder.name}
-              onClick={() => {
-                console.log(
-                  "menuju folder " + folder.name + " dengan id " + folder.id,
-                );
-                goToFolder(folder.id);
-                setCurrentFolderId(folder.id);
-              }}
-            />
-          ))}
+          .sort((a, b) => {
+            if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+            if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+            return 0;
+          })
+          .map((item: FileSystemItem) => {
+            if (item.type === "file")
+              return <FileCard item={item} key={item.id} />;
+            return <FolderCard item={item} key={item.id} />;
+          })}
       </div>
     </FileSystemLayout>
   );

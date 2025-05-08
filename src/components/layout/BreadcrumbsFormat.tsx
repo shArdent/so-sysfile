@@ -34,7 +34,7 @@ export function BreadcrumbFormat() {
       <BreadcrumbList>
         <BreadcrumbItem>Current Path: </BreadcrumbItem>
         {currentPath.map((path) => (
-          <>
+          <div className="flex gap-2 items-center justify-center" key={path.id}>
             <BreadcrumbItem>
               <BreadcrumbLink
                 className={"cursor-pointer"}
@@ -46,7 +46,7 @@ export function BreadcrumbFormat() {
             <BreadcrumbSeparator>
               <Slash />
             </BreadcrumbSeparator>
-          </>
+          </div>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

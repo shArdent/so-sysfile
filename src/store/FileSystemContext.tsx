@@ -6,7 +6,6 @@ const DB_NAME = "FileSystemDB";
 const DB_VERSION = 1;
 const STORE_NAME = "items";
 
-// Open IndexedDB
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -22,13 +21,13 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-// Context Type
 interface FileSystemContextType {
   items: FileSystemItem[];
   currentFolderId: string;
   navigationStack: string[];
   setCurrentFolderId: (id: string) => void;
   addItem: (item: FileSystemItem) => void;
+  editItem: (id: string, newData: any) => void;
   deleteItem: (id: string) => void;
   getItem: (id: string) => Promise<FileSystemItem | undefined>;
   fetchItems: (parentId?: string) => void;
@@ -36,12 +35,11 @@ interface FileSystemContextType {
   goBack: () => void;
   goToFolder: (id: string) => void;
   fetchItemsByParentId: (id: string) => void;
+  moveItem: (id: string, newParentId: string) => void;
 }
 
-// Create Context
 const FileSystemContext = createContext<FileSystemContextType | null>(null);
 
-// Provider
 export const FileSystemProvider = ({
   children,
 }: {
@@ -71,7 +69,7 @@ export const FileSystemProvider = ({
       if (prev.length === 1) return prev;
       const last = prev[prev.length - 2];
       setCurrentFolderId(last);
-      return prev.slice(0, -1); // hapus item terakhir
+      return prev.slice(0, -1);
     });
   };
 
@@ -94,8 +92,36 @@ export const FileSystemProvider = ({
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
-    await store.put({ ...item, id: item.id ?? uuidv4() });
+    store.put({ ...item, id: item.id ?? uuidv4() });
     await fetchItems();
+  }
+
+  async function editItem(id: string, value: any) {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+
+    const getReq = store.get(id);
+    getReq.onsuccess = async () => {
+      const item = getReq.result as FileSystemItem;
+      if (!item) {
+        console.error("Item not found for editing:", id);
+        return;
+      }
+
+      const updatedItem = {
+        ...item,
+        data: value,
+        updatedAt: new Date(),
+      };
+
+      store.put(updatedItem);
+      await fetchItems();
+    };
+
+    getReq.onerror = () => {
+      console.error("Failed to retrieve item for editing");
+    };
   }
 
   async function deleteItem(id: string) {
@@ -125,6 +151,23 @@ export const FileSystemProvider = ({
     await fetchItems();
   }
 
+  async function moveItem(id: string, newParentId: string) {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.get(id);
+
+    request.onsuccess = async () => {
+      const item = request.result as FileSystemItem;
+      if (item) {
+        item.parentId = newParentId;
+        item.updatedAt = new Date();
+        store.put(item);
+        await fetchItems();
+      }
+    };
+  }
+
   async function getItem(id: string): Promise<FileSystemItem | undefined> {
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, "readonly");
@@ -146,7 +189,6 @@ export const FileSystemProvider = ({
       currentId = (item.parentId as string) || "root";
     }
 
-    // Optionally tambahkan root
     path.unshift({
       id: "root",
       name: "Home",
@@ -167,6 +209,7 @@ export const FileSystemProvider = ({
         setCurrentFolderId,
         navigationStack,
         addItem,
+        editItem,
         deleteItem,
         getItem,
         fetchItems,
@@ -174,6 +217,7 @@ export const FileSystemProvider = ({
         goToFolder,
         goBack,
         fetchItemsByParentId,
+        moveItem,
       }}
     >
       {children}
@@ -181,7 +225,6 @@ export const FileSystemProvider = ({
   );
 };
 
-// Hook untuk akses context
 export const useFileSystemContext = () => {
   const context = useContext(FileSystemContext);
   if (!context)
