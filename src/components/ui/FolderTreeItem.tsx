@@ -1,5 +1,4 @@
 import { FolderNode } from "@/types";
-import { Button } from "./button";
 
 const FolderTreeItem = ({
   node,
