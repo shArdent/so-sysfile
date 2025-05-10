@@ -32,7 +32,7 @@ export function BreadcrumbFormat() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>Current Path: </BreadcrumbItem>
+        <BreadcrumbItem>Path:</BreadcrumbItem>
         {currentPath.map((path) => (
           <div className="flex gap-2 items-center justify-center" key={path.id}>
             <BreadcrumbItem>

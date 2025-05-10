@@ -21,7 +21,7 @@ function App() {
           <NewFileDialog />
           {currentFolderId !== "root" && (
             <Button variant={"outline"} onClick={goBack}>
-              Go back
+              Kembali
             </Button>
           )}{" "}
         </div>

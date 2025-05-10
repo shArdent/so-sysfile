@@ -12,9 +12,8 @@ export default function FileSystemLayout({ children }: PropsWithChildren) {
         <FolderTree folders={items} />
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 px-8 py-4">
-        <h1 className="text-xl font-bold mb-2">Content</h1>
+        <h1 className="text-xl font-bold mb-2">Konten</h1>
         {children}
       </main>
     </div>

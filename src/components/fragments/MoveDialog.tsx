@@ -26,7 +26,7 @@ const MoveDialog = ({
   setIsOpen: (val: boolean) => void;
 }) => {
   const { items, moveItem } = useFileSystemContext();
-  const folders = items.filter((i) => i.type === "folder");
+  const folders = items.filter((i) => i.type === "folder" && i.id !== itemId);
 
   const folderTree = buildFolderTree(folders);
 

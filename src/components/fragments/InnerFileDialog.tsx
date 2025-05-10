@@ -46,7 +46,7 @@ const InnerFileDialog = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="min-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Notepad - test file</DialogTitle>
+          <DialogTitle className="text-base">Notepad - {item.name}</DialogTitle>
         </DialogHeader>
         <textarea
           className="w-full h-64 p-2 border rounded-sm resize-none"

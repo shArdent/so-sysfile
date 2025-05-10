@@ -1,87 +1,43 @@
-import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import NewFileTextCard from "./NewFileTextCard";
+import NewFileUploadCard from "./NewFileUploadCard";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { v4 as uuid } from "uuid";
-import { useFileSystemContext } from "@/store/FileSystemContext";
-import { FileSystemItem } from "@/types";
+import { Button } from "../ui/button";
+import { useState } from "react";
 
 const NewFileDialog = () => {
-  const [newName, setNewName] = useState<string>("");
-  const [newData, setNewData] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { addItem, currentFolderId } = useFileSystemContext();
-
-  useEffect(() => {
-    if (isOpen) setNewName("");
-  }, [isOpen]);
-
-  const handleSubmit = () => {
-    const id = uuid();
-    const payload: FileSystemItem = {
-      id,
-      name: newName,
-      type: "file",
-      data: newData,
-      parentId: currentFolderId as string,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    addItem(payload);
-    setIsOpen(false);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(true);
-          }}
-        >
-          Tambah File
-        </Button>
+        <Button onClick={() => setIsOpen(true)}>Tambah File</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Buat File Baru</DialogTitle>
+          <DialogTitle>Tambah File Baru</DialogTitle>
           <DialogDescription>
-            Menambahkan file baru di direktori saat ini
+            Tambahkan atau upload file ke direktori saat ini
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <Label htmlFor="name" className="text-right">
-            Nama File
-          </Label>
-          <Input
-            id="name"
-            onChange={(e) => setNewName(e.target.value)}
-            className="col-span-3"
-          />
-          <Label htmlFor="name" className="text-right">
-            Isi File
-          </Label>
-          <textarea
-            className="w-full h-64 p-2 border rounded-sm resize-none"
-            onChange={(e) => setNewData(e.target.value)}
-          />
-        </div>
-        <DialogFooter>
-          <Button onClick={handleSubmit} type="submit">
-            Buat File
-          </Button>
-        </DialogFooter>
+        <Tabs defaultValue="create" className="w-[400px]">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create">Buat</TabsTrigger>
+            <TabsTrigger value="upload">Upload</TabsTrigger>
+          </TabsList>
+          <TabsContent value="create">
+            <NewFileTextCard isOpen={isOpen} setIsOpen={setIsOpen} />
+          </TabsContent>
+          <TabsContent value="upload">
+            <NewFileUploadCard setOpen={setIsOpen} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

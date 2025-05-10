@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { FileSystemItem } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { promisifyRequest } from "@/lib/utils";
 
 const DB_NAME = "FileSystemDB";
 const DB_VERSION = 1;
@@ -36,6 +37,7 @@ interface FileSystemContextType {
   goToFolder: (id: string) => void;
   fetchItemsByParentId: (id: string) => void;
   moveItem: (id: string, newParentId: string) => void;
+  uploadFile: (file: File, paretnId: string) => void;
 }
 
 const FileSystemContext = createContext<FileSystemContextType | null>(null);
@@ -126,27 +128,16 @@ export const FileSystemProvider = ({
 
   async function deleteItem(id: string) {
     const db = await openDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    const index = store.index("parentId");
-    const childrenRequest = index.getAll([id]);
+    const readTx = db.transaction(STORE_NAME, "readonly");
+    const index = readTx.objectStore(STORE_NAME).index("parentId");
+    const children = await promisifyRequest<FileSystemItem[]>(index.getAll(id));
+    for (const child of children) {
+      await deleteItem(child.id);
+    }
 
-    store.delete(id);
-
-    childrenRequest.onsuccess = async () => {
-      const children = childrenRequest.result as FileSystemItem[];
-      for (const child of children) {
-        if (child.type === "folder") {
-          await deleteItem(child.id);
-        } else {
-          store.delete(child.id);
-        }
-      }
-    };
-
-    childrenRequest.onerror = () => {
-      console.error("Failed to fetch children for deletion");
-    };
+    const writeTx = db.transaction(STORE_NAME, "readwrite");
+    const store = writeTx.objectStore(STORE_NAME);
+    await promisifyRequest(store.delete(id));
 
     await fetchItems();
   }
@@ -201,6 +192,31 @@ export const FileSystemProvider = ({
     return path;
   }
 
+  async function uploadFile(file: File, parentId: string = "root") {
+    const db = await openDB();
+
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+
+    const fileData = {
+      id: uuidv4(),
+      name: file.name,
+      type: "file",
+      data: file,
+      parentId: parentId,
+      contentType: file.type,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } satisfies FileSystemItem;
+
+    store.add(fileData);
+
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve(fileData);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   return (
     <FileSystemContext.Provider
       value={{
@@ -218,6 +234,7 @@ export const FileSystemProvider = ({
         goBack,
         fetchItemsByParentId,
         moveItem,
+        uploadFile,
       }}
     >
       {children}

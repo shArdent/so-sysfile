@@ -2,6 +2,7 @@ import { FileSystemItem } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { format } from "date-fns";
 import { Separator } from "../ui/separator";
+import { formatBytes } from "@/lib/utils";
 
 const PropertiesDialog = ({
   item,
@@ -16,7 +17,7 @@ const PropertiesDialog = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="min-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Properti - test file</DialogTitle>
+          <DialogTitle>Properti - {item.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
@@ -38,28 +39,16 @@ const PropertiesDialog = ({
             <span className="text-muted-foreground">Parent ID</span>
             <span>{String(item.parentId)}</span>
           </div>
-
-          {!item.data && (
+          {item.type === "file" && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ukuran</span>
-              <span>{new Blob([item.data]).size} bytes</span>
+              <span>
+                {item.data instanceof Blob
+                  ? formatBytes(item.data.size)
+                  : formatBytes(new Blob([item.data ?? ""]).size)}
+              </span>
             </div>
           )}
-
-          {item.data && typeof item.data === "string" && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ukuran</span>
-              <span>{new Blob([item.data]).size} bytes</span>
-            </div>
-          )}
-
-          {item.data instanceof Blob && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ukuran</span>
-              <span>{item.data.size} bytes</span>
-            </div>
-          )}
-
           <Separator className="my-2" />
 
           <div className="flex justify-between">

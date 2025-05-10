@@ -2,6 +2,7 @@ export interface FileSystemItem {
   id: string;
   name: string;
   type: "folder" | "file";
+  contentType?: string;
   parentId: IDBValidKey;
   data?: any;
   createdAt: Date;

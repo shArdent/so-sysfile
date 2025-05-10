@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { File, Folder } from "lucide-react";
-import { cn } from "@/lib/utils"; // helper untuk classnames
+import { cn, truncateName } from "@/lib/utils"; // helper untuk classnames
 import { FileSystemItem } from "@/types";
 import { useFileSystemContext } from "@/store/FileSystemContext";
 
@@ -33,15 +33,14 @@ export default function FolderTree({
               )}
               onClick={() => hasChild && toggle(folder.id)}
             >
-              {/* Optional: dot or connector */}
               <span className="absolute -left-2 top-1/2 w-2 h-0.5 bg-gray-300" />
               {folder.type === "folder" ? (
-                <Folder className="w-4 h-4" />
+                <Folder className="w-4 h-4 shrink-0 text-yellow-500" />
               ) : (
-                <File className="w-4 h-4" />
+                <File className="w-4 h-4 shrink-0 text-blue-500" />
               )}
 
-              <span>{folder.name}</span>
+              <span className="text-sm">{truncateName(folder.name, 25)}</span>
             </div>
             {hasChild && open[folder.id] && (
               <FolderTree folders={folders} parentId={folder.id} />
